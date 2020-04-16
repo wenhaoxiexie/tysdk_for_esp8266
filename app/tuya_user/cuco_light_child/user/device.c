@@ -1055,33 +1055,26 @@ static void adc_proc()
     static u8 cnt = 0;
 		
 	ledRgb_init();
-	//BM8563_TIMER_INIT();
+	BM8563_TIMER_INIT();
 	GPIO_OUTPUT(GPIO_Pin_13,1);
+	
+	GPIO_OUTPUT(GPIO_Pin_0,1);
+	GPIO_OUTPUT(GPIO_Pin_4,1);
+	GPIO_OUTPUT(GPIO_Pin_5,1);
+	GPIO_OUTPUT(GPIO_Pin_15,1);
     while(1) { 
 		
 		PR_DEBUG("------------------adc proc--------------");
-		Led_Show_650("8883",1,1,FD650_SYSON_8);
-		
-		//SystemSleep(2000);
-		//key_Show_650();
-
-		
-		//GPIO_OUTPUT(GPIO_Pin_0,0);
-		//GPIO_OUTPUT(GPIO_Pin_4,0);
-		//GPIO_OUTPUT(GPIO_Pin_5,0);
-		//GPIO_OUTPUT(GPIO_Pin_15,0);
-		
-		//SystemSleep(2000);
-		
-		GPIO_OUTPUT(GPIO_Pin_0,1);
-		GPIO_OUTPUT(GPIO_Pin_4,1);
-		GPIO_OUTPUT(GPIO_Pin_5,1);
-		GPIO_OUTPUT(GPIO_Pin_15,1);
+		Led_Show_650("9234",1,1,FD650_SYSON_8);
 		
 		SystemSleep(2000);
-		//BM8563_TIMER_READ();
-		 
-		//SystemSleep(2000);
+		key_Show_650();
+		
+		SystemSleep(2000);
+		
+		BM8563_TIMER_READ();
+		SystemSleep(2000);
+		
 		continue;
 	
 	  adc_value = system_adc_read();

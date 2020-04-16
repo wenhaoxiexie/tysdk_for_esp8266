@@ -103,6 +103,8 @@ static bool rfStudy_flag=false;
 static MSG_LIST* ledMsg=NULL;
 static MSG_LIST* rfMsg=NULL;
 
+static bool wifi_conn_flag=false;
+
 //单位： 0.1k 欧姆
 #define TEMP_25  100
 #define TEMP_30  90
@@ -831,11 +833,12 @@ OPERATE_RET device_init(VOID)
  	  PR_ERR("add syn_timer err");
        	  return op_ret;
      }
-
+	 
      op_ret = CreateAndStart(&ty_msg.adc_thread,adc_proc,NULL,1024,TRD_PRIO_6,"adc_task");
      if( op_ret != OPRT_OK) {
 	  return op_ret;
      }
+
 	// 创建一个射频接收任务函数
 	 op_ret = CreateAndStart(&ty_msg.rf_rec_thread,rf_recv_task,NULL,1024,TRD_PRIO_6,"rf_recv_task");
      if( op_ret != OPRT_OK) {
@@ -846,13 +849,11 @@ OPERATE_RET device_init(VOID)
      if( op_ret != OPRT_OK) {
 	  return op_ret;
      }
-	 
 	// 创建一个led 任务函数
-	 op_ret = CreateAndStart(&ty_msg.led_thread,led_proc_task,NULL,1024,TRD_PRIO_6,"led_proc_task");
-     if( op_ret != OPRT_OK) {
-	  return op_ret;
-     }
-	 
+	op_ret = CreateAndStart(&ty_msg.led_thread,led_proc_task,NULL,1024,TRD_PRIO_6,"led_proc_task");//
+	if( op_ret != OPRT_OK) {
+		return op_ret;
+	}
      op_ret = device_differ_init();
      if( op_ret != OPRT_OK) {
 	  return op_ret;
@@ -936,7 +937,6 @@ STATIC OPERATE_RET device_differ_init(VOID)
      else {
 	  sys_start_timer(timer,300,TIMER_CYCLE);
      }
-
      return OPRT_OK;
 }
   
@@ -968,12 +968,16 @@ STATIC VOID wfl_timer_cb(UINT timerID,PVOID pTimerArg)
 		  case STAT_AP_STA_CONN: 
 		 	   //tuya_set_led_type(power_led,OL_HIGH,0);
 			   tuya_set_led_type(wf_light,OL_FLASH_HIGH,1000);
+			   wifi_conn_flag = true;
+			   
+			   PR_DEBUG(">>>>>>wifi connect");
 			   break;
   
 		   case STAT_LOW_POWER:
 		   case STAT_STA_UNCONN: 
 			    //tuya_set_led_type(wf_light,OL_HIGH,0);
-			    tuya_set_led_type(wf_light,OL_FLASH_HIGH,1500);				
+			    tuya_set_led_type(wf_light,OL_FLASH_HIGH,1500);	
+				wifi_conn_flag = false;
 #if 	0			
 			    if ( ty_msg.power) 
 	        		  tuya_set_led_type(power_led,OL_LOW,0);			
@@ -986,6 +990,7 @@ STATIC VOID wfl_timer_cb(UINT timerID,PVOID pTimerArg)
 			    tuya_set_led_type(wf_light,OL_HIGH,0);
 	   		    sys_start_timer(ty_msg.syn_timer,SYN_TIME*1000,TIMER_CYCLE);
 				
+				wifi_conn_flag = true;
 #if 	0			
 			    if ( ty_msg.power) 
 	        		  tuya_set_led_type(power_led,OL_LOW,0);			
@@ -1281,6 +1286,16 @@ static OPERATE_RET rf_event_proc(char* uid,uint32 len)
 	return OPRT_OK;
 }
 
+static void wait_wifi_conn(void)
+{
+	while(1)
+	{
+		if(wifi_conn_flag==true)
+			break;
+		SystemSleep(50);
+	}
+}
+
 /***********************************************************
 function_name: rf_recv_task
 arg1: void 
@@ -1289,13 +1304,17 @@ note:检测射频数据任务函数
 ***********************************************************/
 static void rf_recv_task()
 {
+
 	byte tmp,i;
 	MSG_ID id=msgRfId;
 	P_MSG_DATA data="rf";
 	MSG_DATA_LEN len=sizeof(data);
-	 int j=0;
+	int j=0;
+
+	wait_wifi_conn();
 	CMT2300_Init();
 	setup_Rx();
+	
 	while(1){
 		if(GPO3_H())
 		{
@@ -1328,6 +1347,8 @@ static void rf_proc_task()
 	if(!rfMsg)
 		return ;
 	while(1){
+		
+		SystemSleep(50);  
 		if(GetMsgNodeNum(ty_msg.rfMsgQueenHandle,&num)==OPRT_OK&&num>0)
 		{
 			if(GetMsgNodeFromQueue(ty_msg.rfMsgQueenHandle,msgRfId,&rfMsg)==OPRT_OK)
@@ -1390,6 +1411,7 @@ static void led_proc_task()
 	if(!ledMsg)
 		return ;
 	while(1){
+		 SystemSleep(500);	
 		  if(GetMsgNodeNum(ty_msg.ledMsgQueenHandle,&num)==OPRT_OK&&num>0) 
 		  {
 			if(GetMsgNodeFromQueue(ty_msg.ledMsgQueenHandle,msgLedId,&ledMsg)==OPRT_OK)

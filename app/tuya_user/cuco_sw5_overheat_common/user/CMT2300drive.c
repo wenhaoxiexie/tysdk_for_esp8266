@@ -2,14 +2,14 @@
 
 cmt2300aEasy radio;
 /**********************************************
-note : 参照文件5-pre-2219b.exp 
+note : 参照文件7-pre-2219b.exp 
 **********************************************/
 word CMTBank[12] = {
 					0x0002,
 					0x0166,
 					0x02EC,
 					0x031C,
-					0x0430,
+					0x04F0,
 					0x0580,
 					0x0614,
 					0x0708,
@@ -46,10 +46,10 @@ word FrequencyBank[8] = {
 						};
 
 word DataRateBank[24] = {
-						0x2043,
-						0x2193,
-						0x22B1,
-						0x2333,
+						0x2065,
+						0x2130,
+						0x2290,
+						0x23BB,
 						0x2400,
 						0x2500,
 						0x2600,
@@ -59,13 +59,13 @@ word DataRateBank[24] = {
 						0x2A00,
 						0x2B29,
 						0x2CC0,
-						0x2D8A,
-						0x2E02,
-						0x2F6B,
-						0x3017,
+						0x2D28,
+						0x2E15,
+						0x2F5B,
+						0x3007,
 						0x3100,
 						0x3250,
-						0x3315,
+						0x332D,
 						0x3400,
 						0x3501,
 						0x3605,
@@ -105,12 +105,12 @@ word BasebandBank[29] = {
 						};
 
 word TXBank[11] = {
-					0x5541,
+					0x5551,
 					0x564D,
 					0x5706,
 					0x5800,
-					0x5900,
-					0x5A30,
+					0x5907,
+					0x5AB0,
 					0x5B00,
 					0x5C03,
 					0x5D01,
@@ -194,9 +194,9 @@ bool bGoRx(void)
  byte tmp, i;
  
  radio.RssiTrig = false;
-
  INIT_RX:
- Spi3.vSpi3Write(((word)CMT23_MODE_CTL<<8)+MODE_GO_RX);		
+ Spi3.vSpi3Write(((word)CMT23_MODE_CTL<<8)+MODE_GO_RX);	
+ 
  for(i=0; i<50; i++)
  	{
  	//Delay_us(200);
@@ -690,19 +690,29 @@ void CMT2300_Init()
 {
 	spi_init();
 	CMT2300_Band();
+	
 	/**********基础设置初始化一次即可*******/
 	radio.FixedPktLength    = true;				
 	radio.PayloadLength     = LEN;	
 	radio.vInit();
+	
 	radio.vCfgBank(CMTBank, 12);
+	
 	radio.vCfgBank(SystemBank, 12);
+	
 	radio.vCfgBank(FrequencyBank, 8);
+	
 	radio.vCfgBank(DataRateBank, 24);
+	
 	radio.vCfgBank(BasebandBank, 29);
+	
 	radio.vCfgBank(TXBank, 11);
+	
 	radio.vEnablePLLcheck();
-	radio.vJumpFRQ(1);
+	
+	//radio.vJumpFRQ(1);
 	radio.bGoSleep();  				//让配置生效
+	
 	
 	/**************************************/
 }
@@ -711,17 +721,22 @@ void setup_Rx(void)
 {
 
 	radio.bGoStandby();   //进入配置模式
+	
 	radio.vEnableAntSwitch(0); //为 1 时 GPIO1 和 GPIO2 不可用
+	
 	radio.vGpioFuncCfg(GPIO1_INT1+GPIO2_Dout+GPIO3_INT2);  //IO口的功能映射
 
 	//radio.vIntSrcCfg(INT_RSSI_VALID, INT_CRC_PASS);   //GPO3映射成CRC_pass中断，此处如果要用该中断，RFPDK需要配置CRC
 	radio.vIntSrcCfg(INT_PKT_DONE, INT_PKT_DONE);  //GPO3映射成PKT_DONE中断 //IO口中断的映射
+	
 	radio.vIntSrcEnable(PKT_DONE_EN);          //中断使能 
 	
 	radio.vClearFIFO();
+	
 	radio.bGoSleep();           //让配置生效
+	
 	radio.bGoRx();              //for Rx
-
+	
 }
 
 

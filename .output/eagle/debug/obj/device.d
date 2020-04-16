@@ -110,5 +110,5 @@
  ../../../../app/tuya_common/include/system/uni_thread.h \
  ../../../../app/tuya_common/include/system/uni_semaphore.h \
  ../../../../app/tuya_common/include/gpio.h \
- ../../../../app/tuya_common/include/wf_sdk_adpt.h ../include/FD650App.h \
- ../include/FD650.h ../include/BM8563_RTC.h ../include/LED_RGB.h
+ ../../../../app/tuya_common/include/wf_sdk_adpt.h \
+ ../include/CMT2300drive.h ../include/spi.h ../include/device.h

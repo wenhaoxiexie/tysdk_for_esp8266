@@ -40,16 +40,21 @@
 #define POWER_CTRL GPIO_ID_PIN(14)  //继电器控制
 
 #define DP_SWITCH            1
-#define DP_COUNT_DOWN  9
+#define DP_COUNT_DOWN  7
+#define DP_LED_DIRECT  15
+
 #define DP_OVER_HEAT      101
 
 #define DP_SWITCH_CHAR            "1"
-#define DP_COUNT_DOWN_CHAR  "9"
+#define DP_COUNT_DOWN_CHAR  "7"
+#define DP_LED_DIRECT_CHAR  "15"
+
 #define DP_OVER_HEAT_CHAR      "101"
 
 typedef struct 
 {
     INT power;
+	INT ledDir_status;
     INT appt_sec;
     TIMER_ID syn_timer;
     TIMER_ID count_timer;
@@ -177,8 +182,18 @@ STATIC INT msg_upload_proc(INT state,char i)
     }
 		 
      cJSON_AddBoolToObject(root,DP_SWITCH_CHAR,state);
+	 
+
      cJSON_AddNumberToObject(root, DP_COUNT_DOWN_CHAR, 0);
-#if 	1 
+	 if(ty_msg.ledDir_status==0)
+     	cJSON_AddStringToObject(root, DP_LED_DIRECT_CHAR, "none");
+	 else if(ty_msg.ledDir_status==1)
+	 	cJSON_AddStringToObject(root, DP_LED_DIRECT_CHAR, "relay");
+	 else if(ty_msg.ledDir_status==2)
+	 	cJSON_AddStringToObject(root, DP_LED_DIRECT_CHAR, "pos");
+	 else
+	 	cJSON_AddStringToObject(root, DP_LED_DIRECT_CHAR, "none");
+#if 1
      cJSON_AddBoolToObject(root,DP_OVER_HEAT_CHAR,tem_alarm);
 #endif
 	  
@@ -201,7 +216,25 @@ STATIC INT msg_upload_proc(INT state,char i)
 	  return WM_FAIL;
      }
 }
-  
+
+static void power_led_ctrl(void)
+{
+	if(ty_msg.ledDir_status==0)
+		tuya_set_led_type(power_led,OL_HIGH,0); 
+	else if(ty_msg.ledDir_status==1)
+	{
+		if(ty_msg.power)
+			tuya_set_led_type(power_led,OL_LOW,0); 
+		else
+			tuya_set_led_type(power_led,OL_HIGH,0); 
+	}else{
+		if(ty_msg.power)
+			tuya_set_led_type(power_led,OL_HIGH,0); 
+		else
+			tuya_set_led_type(power_led,OL_LOW,0);
+	}	
+}
+
 STATIC INT msg_upload_sec(INT sec,char num)
 {
      GW_WIFI_STAT_E wf_stat = tuya_get_wf_status();
@@ -280,11 +313,13 @@ STATIC VOID ctrl_power_led(INT state,char i)
 	     tuya_set_led_type(power_led,OL_HIGH,0);
 #else
 	if (ty_msg.power) {
-	     tuya_set_led_type(power_led,OL_LOW,0);	
+	     //tuya_set_led_type(power_led,OL_LOW,0);	
+	     power_led_ctrl();
 	     PR_DEBUG("power led on");	  		 	 
 	}
 	else {
-	     tuya_set_led_type(power_led,OL_HIGH,0);
+	     //tuya_set_led_type(power_led,OL_HIGH,0);
+	     power_led_ctrl();
 	     PR_DEBUG("power led off");	  		 		 
 	}
 #endif
@@ -364,7 +399,36 @@ VOID deal_dps_handle(UCHAR dps,cJSON *nxt)
 	      	    }
 		    }
 		    break;
-				
+		case DP_LED_DIRECT:
+			
+			PR_ERR(">>>>>DP_LED_DIRECT: %s ",nxt->valuestring);
+			if(strcmp(nxt->valuestring,"none")==0)  // 关闭指示灯
+			{
+				ty_msg.ledDir_status=0;
+				//tuya_set_led_type(power_led,OL_HIGH,0);
+			}
+			else if(strcmp(nxt->valuestring,"relay")==0) // 指示灯与继电器保持同步
+			{
+				//if(ty_msg.power==TRUE)
+				//	tuya_set_led_type(power_led,OL_HIGH,0);
+				//else
+					//tuya_set_led_type(power_led,OL_LOW,0);
+				ty_msg.ledDir_status=1;
+			}
+			else if(strcmp(nxt->valuestring,"pos")==0)  // 指示灯与继电器保持异步
+			{
+				//if(ty_msg.power==TRUE)
+					//tuya_set_led_type(power_led,OL_LOW,0);
+				//else
+					//tuya_set_led_type(power_led,OL_HIGH,0);
+				ty_msg.ledDir_status=2;
+			}
+			else
+				ty_msg.ledDir_status=0;
+			
+			power_led_ctrl();
+			PostSemaphore(ty_msg.press_key_sem);
+			break;
 	   default:
 		  break;
       }
@@ -476,7 +540,7 @@ STATIC OPERATE_RET get_power_stat()
 	  PR_ERR("cjson parse");
 	  goto JSON_PARSE_ERR;
      }
-  
+     // 继电器状态获取
      json = cJSON_GetObjectItem(root,"power0");
      if(NULL == json) {
  	  PR_ERR("cjson get power");
@@ -484,6 +548,15 @@ STATIC OPERATE_RET get_power_stat()
      }
 	   
      ty_msg.power = json->valueint;
+
+     // app端指示灯状态获取
+      json = cJSON_GetObjectItem(root,"ledDirt");
+     if(NULL == json) {
+ 	  PR_ERR("cjson get ledDirt");
+	  goto JSON_PARSE_ERR;
+     }
+	   
+     ty_msg.ledDir_status= json->valueint;
 	
      cJSON_Delete(root);
      Free(buf);
@@ -506,6 +579,8 @@ STATIC OPERATE_RET set_power_stat(INT state)
      }
 	  
      cJSON_AddNumberToObject(root, "power0", ty_msg.power);
+	 
+     cJSON_AddNumberToObject(root, "ledDirt", ty_msg.ledDir_status);
 	
      UCHAR *buf = cJSON_PrintUnformatted(root);
      if(NULL == buf) {

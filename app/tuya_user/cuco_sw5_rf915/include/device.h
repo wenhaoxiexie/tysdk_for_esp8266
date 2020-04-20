@@ -26,7 +26,7 @@
 #define SW_VER USER_SW_VER
 
 //#define PRODECT_KEY "eyEYwtdx9VhexxLW"//"eyEYwtdx9VhexxLW""hT785aK7BOFvQvIC"//
-#define PRODECT_KEY "5d4gz7oy2234plod"
+#define PRODECT_KEY "tbgluq67bu29bz6b"
 
 
 #define DEF_DEV_ABI DEV_SINGLE

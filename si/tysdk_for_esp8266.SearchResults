@@ -1,9 +1,18 @@
----- ele_cal_busy Matches (8 in 1 files) ----
-Hlw8012.c (e:\workpro\sharedfile\sw\tysdk_for_esp8266\app\tuya_user\cuco_sp111_16_ec_common\user):SEM_HANDLE ele_cal_busy;
-Hlw8012.c (e:\workpro\sharedfile\sw\tysdk_for_esp8266\app\tuya_user\cuco_sp111_16_ec_common\user):             PostSemaphore(ele_cal_busy);
-Hlw8012.c (e:\workpro\sharedfile\sw\tysdk_for_esp8266\app\tuya_user\cuco_sp111_16_ec_common\user):		ele_cal_busy = CreateSemaphore();
-Hlw8012.c (e:\workpro\sharedfile\sw\tysdk_for_esp8266\app\tuya_user\cuco_sp111_16_ec_common\user):		if(NULL == ele_cal_busy){
-Hlw8012.c (e:\workpro\sharedfile\sw\tysdk_for_esp8266\app\tuya_user\cuco_sp111_16_ec_common\user):	    op_ret = InitSemaphore(ele_cal_busy,0,1);
-Hlw8012.c (e:\workpro\sharedfile\sw\tysdk_for_esp8266\app\tuya_user\cuco_sp111_16_ec_common\user):            ReleaseSemaphore(ele_cal_busy);       
-Hlw8012.c (e:\workpro\sharedfile\sw\tysdk_for_esp8266\app\tuya_user\cuco_sp111_16_ec_common\user):		WaitSemaphore(ele_cal_busy);
-Hlw8012.c (e:\workpro\sharedfile\sw\tysdk_for_esp8266\app\tuya_user\cuco_sp111_16_ec_common\user):	    ReleaseSemaphore(ele_cal_busy); 
+---- vTaskDelay Matches (20 in 4 files) ----
+Device.c (e:\workpro\sharedfile\sw\tysdk_for_esp8266\app\tuya_user\cuco_bm02_common\user):		  vTaskDelay
+Mpu_wrappers.h (e:\workpro\sharedfile\sw\tysdk_for_esp8266\include\freertos):		#define vTaskDelay						MPU_vTaskDelay
+Task.h (e:\workpro\sharedfile\sw\tysdk_for_esp8266\include\freertos): * <pre>void vTaskDelay( portTickType xTicksToDelay );</pre>
+Task.h (e:\workpro\sharedfile\sw\tysdk_for_esp8266\include\freertos): * vTaskDelay() specifies a time at which the task wishes to unblock relative to
+Task.h (e:\workpro\sharedfile\sw\tysdk_for_esp8266\include\freertos): * the time at which vTaskDelay() is called.  For example, specifying a block
+Task.h (e:\workpro\sharedfile\sw\tysdk_for_esp8266\include\freertos): * vTaskDelay() is called.  vTaskDelay() does not therefore provide a good method
+Task.h (e:\workpro\sharedfile\sw\tysdk_for_esp8266\include\freertos): * at which vTaskDelay() gets called and therefore the time at which the task
+Task.h (e:\workpro\sharedfile\sw\tysdk_for_esp8266\include\freertos):		 vTaskDelay( xDelay );
+Task.h (e:\workpro\sharedfile\sw\tysdk_for_esp8266\include\freertos): * \defgroup vTaskDelay vTaskDelay
+Task.h (e:\workpro\sharedfile\sw\tysdk_for_esp8266\include\freertos):void vTaskDelay( portTickType xTicksToDelay ) PRIVILEGED_FUNCTION;
+Task.h (e:\workpro\sharedfile\sw\tysdk_for_esp8266\include\freertos): * This function differs from vTaskDelay () in one important aspect:  vTaskDelay () will
+Task.h (e:\workpro\sharedfile\sw\tysdk_for_esp8266\include\freertos): * cause a task to block for the specified number of ticks from the time vTaskDelay () is
+Task.h (e:\workpro\sharedfile\sw\tysdk_for_esp8266\include\freertos): * called.  It is therefore difficult to use vTaskDelay () by itself to generate a fixed
+Task.h (e:\workpro\sharedfile\sw\tysdk_for_esp8266\include\freertos): * calling vTaskDelay () may not be fixed [the task may take a different path though the
+Task.h (e:\workpro\sharedfile\sw\tysdk_for_esp8266\include\freertos): * Whereas vTaskDelay () specifies a wake time relative to the time at which the function
+Websocket.c (e:\workpro\sharedfile\sw\tysdk_for_esp8266\examples\websocket_demo\websocket):		vTaskDelay(1000 / portTICK_RATE_MS);
+Websocket.c (e:\workpro\sharedfile\sw\tysdk_for_esp8266\examples\websocket_demo\websocket):		vTaskDelay(200 / portTICK_RATE_MS);
